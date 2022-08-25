@@ -23,6 +23,8 @@ import { FiLayers, FiSearch } from 'react-icons/fi';
 import { theme } from "./theme";
 import { useState } from "react";
 import { Header } from "./components/Header";
+import { DataStore } from "./components/DataStore";
+import { QueryWindow } from "./components/QueryWindow";
 
 export const App = () => {
 
@@ -32,7 +34,13 @@ export const App = () => {
       <Box textAlign="center" fontSize="xl">
         <Grid minH="100vh" templateRows='5rem 1fr'>
           <Header activeTab={activeTab} setActiveTab={setActiveTab}/>
-          <Grid backgroundColor='#1c1340'></Grid>
+          <Grid width='100%' height='100%' backgroundColor='#1c1340'>
+            {
+              activeTab === 'datastore' ?
+                <DataStore/>
+                : <QueryWindow/>
+            }
+          </Grid>
         </Grid>
       </Box>
     </ChakraProvider>
