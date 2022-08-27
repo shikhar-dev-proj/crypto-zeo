@@ -104,7 +104,7 @@ export const QueryWindow = () => {
       resultValues?.userOwnedPools
         ? resultValues?.userOwnedPools
         : resultValues?.userProfitLosses,
-      update_url + "primea/insertGraphData"
+      update_url + "premia/insertGraphData"
     )
       .then((value) => {
         setUpdateLoading(false);

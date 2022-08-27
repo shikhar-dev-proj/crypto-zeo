@@ -23,7 +23,7 @@ export const DataStore = ({ activeDatastore }: { activeDatastore: string }) => {
     const audience = await axios.get(
       activeDatastore === "nft"
         ? "http://idu-onboarding-qa.zeotap.net/decentraland/getAllWalletProfiles"
-        : "http://idu-onboarding-qa.zeotap.net/primea/getAllWalletProfiles"
+        : "http://idu-onboarding-qa.zeotap.net/premia/getAllWalletProfiles"
     );
     setData(toData(audience.data, activeDatastore));
     setLoading(false);
