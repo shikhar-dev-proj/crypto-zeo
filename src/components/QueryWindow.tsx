@@ -38,7 +38,7 @@ import {
 import { QueryResult } from "./QueryResult";
 import { QuerySearchBar } from "./QuerySearchBar";
 const url_primea =
-  "https://gateway.thegraph.com/api/1464c9756cf848bb444930c8f1ccdf87/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb";
+  "https://gateway.thegraph.com/api/41e6298d16d1a121be74db268a3e0144/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb";
 const url_nft =
   "https://api.thegraph.com/subgraphs/name/decentraland/marketplace";
 
