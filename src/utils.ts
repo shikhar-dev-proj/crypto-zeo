@@ -1,19 +1,40 @@
-export const formatAddress = (addr: string): string => addr?.slice(0, 4) + '....' + addr?.slice(addr.length - 4, addr.length)
+export const formatAddress = (addr: string): string =>
+  addr?.slice(0, 4) + "...." + addr?.slice(addr.length - 4, addr.length);
 
 export const formatBigNumber = (val: string) => {
   // Nine Zeroes for Billions
   // const val = Math.round(+labelValue/1e+18).toString()
-  return Math.abs(Number(val)) >= 1.0e+9
+  var sign = "";
+  if (Number(val) < 0) sign = "-";
+  return (
+    sign +
+    (Math.abs(Number(val)) >= 1.0e9
+      ? Math.abs(Number(val)) / 1.0e9 + "B"
+      : // Six Zeroes for Millions
+      Math.abs(Number(val)) >= 1.0e6
+      ? Math.abs(Number(val)) / 1.0e6 + "M"
+      : // Three Zeroes for Thousands
+      Math.abs(Number(val)) >= 1.0e3
+      ? Math.abs(Number(val)) / 1.0e3 + "K"
+      : Math.abs(Number(val)))
+  );
+};
 
-    ? Math.abs(Number(val)) / 1.0e+9 + "B"
-    // Six Zeroes for Millions 
-    : Math.abs(Number(val)) >= 1.0e+6
+export const formatNftObject = (value: any) => {
+  return `category:${value.category} name:${
+    value.name ? formatAddress(value.name) : ""
+  }`;
+};
 
-      ? Math.abs(Number(val)) / 1.0e+6 + "M"
-      // Three Zeroes for Thousands
-      : Math.abs(Number(val)) >= 1.0e+3
-
-        ? Math.abs(Number(val)) / 1.0e+3 + "K"
-
-        : Math.abs(Number(val));
-}
+export const format = (value: any, formatter: string): string => {
+  switch (formatter) {
+    case "formatBigNumber":
+      return `${formatBigNumber(value)}`;
+    case "formatAddress":
+      return formatAddress(value);
+    case "formatNftObject":
+      return formatNftObject(value);
+    default:
+      return value.toString();
+  }
+};

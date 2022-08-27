@@ -3,13 +3,17 @@ import { OptionType } from "../types/types";
 export type QuerySearchBarProps = {
   options: OptionType[];
   selectedOptions?: OptionType[];
+  placeholder?: string;
+  multi?: boolean;
   onChange?: (selectedOptions: OptionType[]) => void;
+  width?: number;
 };
 export function QuerySearchBar(props: QuerySearchBarProps) {
+  const { width = "100%" } = props;
   const customStyles = {
     container: (provided: any, state: any) => ({
       ...provided,
-      width: "100%",
+      width: width,
     }),
     menu: (provided: any, state: any) => ({
       ...provided,
@@ -17,21 +21,22 @@ export function QuerySearchBar(props: QuerySearchBarProps) {
     }),
   };
 
-  const handleMultiChange = (
-    selectedOptions: MultiValue<OptionType>,
-    action: unknown
-  ) => props.onChange && props.onChange(selectedOptions as OptionType[]);
+  const handleMultiChange = (selectedOptions: MultiValue<OptionType>) =>
+    props.onChange && props.onChange(selectedOptions as OptionType[]);
 
-  const handleSingleChange = (
-    selectedOptions: SingleValue<OptionType>,
-    action: unknown
-  ) => props.onChange && props.onChange([selectedOptions] as OptionType[]);
+  const handleSingleChange = (selectedOptions: SingleValue<OptionType>) =>
+    props.onChange && props.onChange([selectedOptions] as OptionType[]);
 
   return (
     <Select
+      placeholder={props.placeholder || "Select"}
       defaultValue={props.selectedOptions}
-      isMulti
-      onChange={handleMultiChange}
+      onChange={(options, action) =>
+        props.multi && options
+          ? handleMultiChange(options as MultiValue<OptionType>)
+          : handleSingleChange(options as SingleValue<OptionType>)
+      }
+      isMulti={!!props.multi}
       styles={customStyles}
       options={props.options}
     />

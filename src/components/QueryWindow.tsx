@@ -11,23 +11,38 @@ import {
   TabPanels,
   Tabs,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
   ColumnDefinition,
+  ColumnDefinitions,
   OptionType,
   QueryResultType,
+  QueryType,
   Result,
 } from "../types/types";
 import {
-  CatalogOptionsData,
+  CatalogList,
+  CatalogOperators,
+  createQueryString,
+  NftDefinition,
+  Props,
+  QueryMap,
   querySubgraph,
+  updateProfile,
   UserPoolDefinition,
   UserProfitLossDefinition,
+  Values,
 } from "../utils/utils";
 import { QueryResult } from "./QueryResult";
 import { QuerySearchBar } from "./QuerySearchBar";
+const url_primea =
+  "https://gateway.thegraph.com/api/1464c9756cf848bb444930c8f1ccdf87/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb";
+const url_nft =
+  "https://api.thegraph.com/subgraphs/name/decentraland/marketplace";
 
+const update_url = "https://idu-onboarding-qa.zeotap.net/insertGraphData/";
 const results: Result<any>[] = [
   { key: 1, value: { id: "12323", user: "12323234232", poolCount: 10 } },
   { key: 2, value: { id: "123sd", user: "sdfd3434343d", poolCount: 20 } },
@@ -36,18 +51,19 @@ const results: Result<any>[] = [
 export const QueryWindow = () => {
   const [isRunLoading, setRunLoading] = useState(false);
   const [isUpdateLoading, setUpdateLoading] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState<OptionType[]>([]);
   const [resultValues, setResultValues] = useState<QueryResultType | null>(
     null
   );
-  const handleChange = (_selectedOptions: OptionType[]) => {
-    setSelectedOptions(_selectedOptions);
-  };
+  const [query, setQuery] = useState<QueryType>({});
+  const toast = useToast();
   const handleRun = () => {
-    if (!selectedOptions.length) return;
-    const query = selectedOptions.map((options) => options.value).join("");
+    const queryString = createQueryString(query);
+    if (!queryString.length) return;
+    const _query = QueryMap[queryString];
+    if (!_query) return;
     setRunLoading(true);
-    querySubgraph(`{${query}}`)
+
+    querySubgraph(`${_query}`, query.type == "accounts" ? url_nft : url_primea)
       .then((value) => {
         setResultValues(value.data.data);
         setRunLoading(false);
@@ -57,14 +73,66 @@ export const QueryWindow = () => {
 
   const handleUpdate = () => {
     setUpdateLoading(true);
-    setTimeout(() => {
-      setUpdateLoading(false);
-    }, 2000);
+    if (query.type === "accounts") {
+      updateProfile(resultValues?.accounts, update_url + "decentraland")
+        .then((value) => {
+          setUpdateLoading(false);
+          toast({
+            title: "Profiles added ",
+            description: "We've added the below profile to your store",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
+        })
+        .catch((err) => {
+          setUpdateLoading(false);
+          toast({
+            title: "Oops ! Something went wrong",
+            description: err.toString(),
+            status: "error",
+            duration: 4500,
+            isClosable: true,
+          });
+        });
+      return;
+    }
+    updateProfile(
+      resultValues?.userOwnedPools
+        ? resultValues?.userOwnedPools
+        : resultValues?.userProfitLosses,
+      update_url + "primea"
+    )
+      .then((value) => {
+        setUpdateLoading(false);
+        toast({
+          title: "Profiles added ",
+          description: "We've added the below profile to your store",
+          status: "success",
+          duration: 9000,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        setUpdateLoading(false);
+        toast({
+          title: "Oops ! Something went wrong",
+          description: err.toString(),
+          status: "error",
+          duration: 4500,
+          isClosable: true,
+        });
+      });
   };
-
-  const tabs = resultValues
-    ? selectedOptions.map((option) => <Tab>{option.label}</Tab>)
-    : "";
+  const useResultValues = (): [ColumnDefinitions, unknown[]] => {
+    if (resultValues?.userOwnedPools)
+      return [UserPoolDefinition, resultValues?.userOwnedPools];
+    if (resultValues?.userProfitLosses)
+      return [UserProfitLossDefinition, resultValues?.userProfitLosses];
+    if (resultValues?.accounts) return [NftDefinition, resultValues?.accounts];
+    return [{ keyProperty: "", definations: [] }, []];
+  };
+  const [resultDefinition, resultQueryValues] = useResultValues();
 
   return (
     <Stack
@@ -76,88 +144,62 @@ export const QueryWindow = () => {
       width="100vw"
       spacing={8}
     >
-      <Stack spacing={4} width="100%" direction="row">
+      <Stack spacing={2} width="100%" direction="row">
         <QuerySearchBar
-          onChange={handleChange}
-          options={CatalogOptionsData}
+          placeholder="Catalog"
+          onChange={(change) => setQuery({ ...query, type: change[0].value })}
+          options={CatalogList}
         ></QuerySearchBar>
-        <Button
-          isLoading={isRunLoading}
-          onClick={handleRun}
-          colorScheme="teal"
-          variant="solid"
-        >
-          Run
-        </Button>
-        <Button
-          isLoading={isUpdateLoading}
-          onClick={handleUpdate}
-          colorScheme="teal"
-          variant="solid"
-        >
-          Update
-        </Button>
-      </Stack>
+        <QuerySearchBar
+          placeholder="property"
+          onChange={(change) => setQuery({ ...query, lhs: change[0].value })}
+          options={query.type ? Props[query.type] : []}
+        ></QuerySearchBar>
+        <QuerySearchBar
+          width={300}
+          placeholder="operator"
+          onChange={(change) =>
+            setQuery({ ...query, operator: change[0].value })
+          }
+          options={CatalogOperators}
+        ></QuerySearchBar>
+        <QuerySearchBar
+          placeholder="value"
+          onChange={(change) => setQuery({ ...query, rhs: change[0].value })}
+          options={query.type ? Values[query.type] : []}
+        ></QuerySearchBar>
+        <Box w={200}>
+          <Stack spacing={2} width="100%" direction="row">
+            <Button
+              isLoading={isRunLoading}
+              onClick={handleRun}
+              colorScheme="teal"
+              variant="solid"
+            >
+              Run
+            </Button>
 
-      <Tabs width="100%" variant="soft-rounded" colorScheme="green">
-        <TabList>{tabs}</TabList>
-        {resultValues ? (
-          <TabPanels>
-            <TabPanel>
-              {resultValues.userOwnedPools ? (
-                <Box>
-                  <QueryResult
-                    cols={UserPoolDefinition}
-                    results={
-                      resultValues.userOwnedPools as Record<string, any>[]
-                    }
-                  ></QueryResult>
-                </Box>
-              ) : (
-                "No data available"
-              )}
-            </TabPanel>
-            <TabPanel>
-              {resultValues.userProfitLosses ? (
-                <Box>
-                  <QueryResult
-                    cols={UserProfitLossDefinition}
-                    results={
-                      resultValues.userProfitLosses as Record<string, any>[]
-                    }
-                  ></QueryResult>
-                </Box>
-              ) : (
-                "No data available"
-              )}
-            </TabPanel>
-          </TabPanels>
+            <Button
+              isLoading={isUpdateLoading}
+              onClick={handleUpdate}
+              colorScheme="teal"
+              variant="solid"
+            >
+              Update
+            </Button>
+          </Stack>
+        </Box>
+      </Stack>
+      <Box height="100%" width="100%" overflowY="scroll">
+        {resultDefinition ? (
+          <QueryResult
+            cols={resultDefinition}
+            results={resultQueryValues as Record<string, any>[]}
+          ></QueryResult>
         ) : (
           ""
         )}
-      </Tabs>
-      {/* <Stack spacing={4} direction="column" width="100%">
-        {resultValues.userOwnedPools ? (
-          <Box>
-            <QueryResult
-              cols={UserPoolDefinition}
-              results={resultValues.userOwnedPools as Record<string, any>[]}
-            ></QueryResult>
-          </Box>
-        ) : (
-          ""
-        )}
-        {resultValues.userProfitLosses ? (
-          <Box>
-            <QueryResult
-              cols={UserProfitLossDefinition}
-              results={resultValues.userProfitLosses as Record<string, any>[]}
-            ></QueryResult>
-          </Box>
-        ) : (
-          ""
-        )}
-      </Stack> */}
+      </Box>
     </Stack>
   );
 };
