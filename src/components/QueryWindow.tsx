@@ -42,7 +42,7 @@ const url_primea =
 const url_nft =
   "https://api.thegraph.com/subgraphs/name/decentraland/marketplace";
 
-const update_url = "https://idu-onboarding-qa.zeotap.net/insertGraphData/";
+const update_url = "http://idu-onboarding-qa.zeotap.net/";
 const results: Result<any>[] = [
   { key: 1, value: { id: "12323", user: "12323234232", poolCount: 10 } },
   { key: 2, value: { id: "123sd", user: "sdfd3434343d", poolCount: 20 } },
@@ -74,7 +74,10 @@ export const QueryWindow = () => {
   const handleUpdate = () => {
     setUpdateLoading(true);
     if (query.type === "accounts") {
-      updateProfile(resultValues?.accounts, update_url + "decentraland")
+      updateProfile(
+        resultValues?.accounts,
+        update_url + "decentraland/insertGraphData"
+      )
         .then((value) => {
           setUpdateLoading(false);
           toast({
@@ -101,7 +104,7 @@ export const QueryWindow = () => {
       resultValues?.userOwnedPools
         ? resultValues?.userOwnedPools
         : resultValues?.userProfitLosses,
-      update_url + "primea"
+      update_url + "primea/insertGraphData"
     )
       .then((value) => {
         setUpdateLoading(false);
