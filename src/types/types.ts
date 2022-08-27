@@ -23,6 +23,7 @@ export type OptionType = { value: string; label: string; dataKey?: string };
 export interface QueryResultType {
   userOwnedPools?: unknown[];
   userProfitLosses?: unknown[];
+  accounts?: unknown[];
 }
 
 export type QueryType = {

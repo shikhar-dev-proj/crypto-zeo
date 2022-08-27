@@ -6,13 +6,10 @@ import {
   QueryType,
 } from "../types/types";
 
-export async function querySubgraph(queryString: String) {
-  const pools = await axios.post(
-    "https://gateway.thegraph.com/api/1464c9756cf848bb444930c8f1ccdf87/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb",
-    {
-      query: queryString,
-    }
-  );
+export async function querySubgraph(queryString: String, url: string) {
+  const pools = await axios.post(url, {
+    query: queryString,
+  });
   //   console.log(pools);
   return pools;
 }
@@ -57,6 +54,33 @@ export const UserProfitLossDefinition: ColumnDefinitions = {
   ],
 };
 
+export const NftDefinition: ColumnDefinitions = {
+  keyProperty: "id",
+  definations: [
+    { label: "User Address", property: "address", formatter: "formatAddress" },
+    {
+      label: "Purchases",
+      property: "purchases",
+      //   formatter: "formatBigNumber",
+    },
+    {
+      label: "Spent",
+      property: "spent",
+      formatter: "formatBigNumber",
+    },
+    {
+      label: "Earned",
+      property: "earned",
+      formatter: "formatBigNumber",
+    },
+    {
+      label: "NFTs",
+      property: "nfts",
+      formatter: "formatNftObject",
+    },
+  ],
+};
+
 export const CatalogOperators = [
   { label: "=", value: "=" },
   { label: "<", value: "<" },
@@ -66,7 +90,7 @@ export const CatalogOperators = [
 export const CatalogList = [
   { label: "User owned pool", value: "userOwnedPools" },
   { label: "User Profit Losses", value: "userProfitLosses" },
-  { label: "NFT", value: "userProfitLosses" },
+  { label: "NFT", value: "accounts" },
 ];
 
 export const Props: Record<string, OptionType[]> = {
@@ -77,6 +101,10 @@ export const Props: Record<string, OptionType[]> = {
   userProfitLosses: [
     { label: "Total Deposits", value: "totalDepositsInUsd" },
     { label: "Total Profit", value: "totalProfitLossInUsd" },
+  ],
+  accounts: [
+    { label: "Category", value: "category" },
+    { label: "Purchases", value: "purchases" },
   ],
 };
 
@@ -91,6 +119,13 @@ export const Values: Record<string, OptionType[]> = {
   userProfitLosses: [
     { label: "0", value: "0" },
     { label: "10", value: "10" },
+  ],
+  accounts: [
+    {
+      label: "parcel",
+      value: "parcel",
+    },
+    { label: "wearable", value: "wearable" },
   ],
 };
 
@@ -125,4 +160,23 @@ export const QueryMap: Record<string, string> = {
   
     }
   }`,
+  "accounts(category=parcel)": `
+  {
+    accounts (where:{
+      nfts_: {
+        category: parcel
+      }
+    }) {
+      address
+      purchases
+      spent
+      earned
+      nfts {
+        category
+        name
+        contractAddress
+      }
+    }
+  }
+  `,
 };

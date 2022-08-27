@@ -20,13 +20,21 @@ export const formatBigNumber = (val: string) => {
   );
 };
 
-export const format = (value: string, formatter: string): string => {
+export const formatNftObject = (value: any) => {
+  return `category:${value.category} name:${
+    value.name ? formatAddress(value.name) : ""
+  }`;
+};
+
+export const format = (value: any, formatter: string): string => {
   switch (formatter) {
     case "formatBigNumber":
       return `${formatBigNumber(value)}`;
     case "formatAddress":
       return formatAddress(value);
+    case "formatNftObject":
+      return formatNftObject(value);
     default:
-      return value;
+      return value.toString();
   }
 };

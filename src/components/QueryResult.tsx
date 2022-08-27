@@ -4,6 +4,7 @@ import {
   TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -23,7 +24,13 @@ export function QueryResult(props: QueryResultProps) {
     <Tr key={result[props.cols.keyProperty]}>
       {props.cols.definations.map((definition) => (
         <Td>
-          {definition.formatter
+          {Array.isArray(result[definition.property])
+            ? result[definition.property].map((value: any) => (
+                <Text border="unset !important" fontSize="0.8rem">
+                  {format(value, definition.formatter || "")}
+                </Text>
+              ))
+            : definition.formatter
             ? format(result[definition.property], definition.formatter)
             : result[definition.property]}
         </Td>

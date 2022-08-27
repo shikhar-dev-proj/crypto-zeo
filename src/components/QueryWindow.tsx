@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import {
   ColumnDefinition,
+  ColumnDefinitions,
   OptionType,
   QueryResultType,
   QueryType,
@@ -24,6 +25,7 @@ import {
   CatalogList,
   CatalogOperators,
   createQueryString,
+  NftDefinition,
   Props,
   QueryMap,
   querySubgraph,
@@ -33,7 +35,10 @@ import {
 } from "../utils/utils";
 import { QueryResult } from "./QueryResult";
 import { QuerySearchBar } from "./QuerySearchBar";
-
+const url_primea =
+  "https://gateway.thegraph.com/api/1464c9756cf848bb444930c8f1ccdf87/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb";
+const url_nft =
+  "https://api.thegraph.com/subgraphs/name/decentraland/marketplace";
 const results: Result<any>[] = [
   { key: 1, value: { id: "12323", user: "12323234232", poolCount: 10 } },
   { key: 2, value: { id: "123sd", user: "sdfd3434343d", poolCount: 20 } },
@@ -53,8 +58,10 @@ export const QueryWindow = () => {
     const _query = QueryMap[queryString];
     if (!_query) return;
     setRunLoading(true);
-    querySubgraph(`${_query}`)
+
+    querySubgraph(`${_query}`, query.type == "accounts" ? url_nft : url_primea)
       .then((value) => {
+        console.log(value);
         setResultValues(value.data.data);
         setRunLoading(false);
       })
@@ -67,12 +74,15 @@ export const QueryWindow = () => {
       setUpdateLoading(false);
     }, 2000);
   };
-
-  const [resultDefinition, resultQueryValues] = resultValues?.userOwnedPools
-    ? [UserPoolDefinition, resultValues?.userOwnedPools]
-    : resultValues?.userProfitLosses
-    ? [UserProfitLossDefinition, resultValues?.userProfitLosses]
-    : [];
+  const useResultValues = (): [ColumnDefinitions, unknown[]] => {
+    if (resultValues?.userOwnedPools)
+      return [UserPoolDefinition, resultValues?.userOwnedPools];
+    if (resultValues?.userProfitLosses)
+      return [UserProfitLossDefinition, resultValues?.userProfitLosses];
+    if (resultValues?.accounts) return [NftDefinition, resultValues?.accounts];
+    return [{ keyProperty: "", definations: [] }, []];
+  };
+  const [resultDefinition, resultQueryValues] = useResultValues();
 
   return (
     <Stack
