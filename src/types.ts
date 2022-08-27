@@ -12,7 +12,7 @@ export const toData = (response: any, type: string): Data => {
     return {
       headers: [
         {
-          id: "walletId",
+          id: "address",
           name: "User",
         },
         {

@@ -99,7 +99,7 @@ export const DataStore = ({ activeDatastore }: { activeDatastore: string }) => {
                       border="unset !important"
                       fontSize="0.8rem"
                     >
-                      {h.id === "walletId"
+                      {h.id === "walletId" || h.id === 'address'
                         ? formatAddress(r[h.id])
                         : h.id === "vaultsProfitLossPercent"
                         ? `${formatBigNumber(r[h.id])} %`
