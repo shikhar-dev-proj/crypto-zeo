@@ -1,6 +1,7 @@
 export type ColumnDefinition = {
   label: string;
   property: string;
+  formatter?: string;
 };
 export type ColumnDefinitions = {
   definations: ColumnDefinition[];
@@ -17,9 +18,16 @@ export type CatalopOptions = {
   value: string;
 };
 
-export type OptionType = { value: string; label: string; dataKey: string };
+export type OptionType = { value: string; label: string; dataKey?: string };
 
 export interface QueryResultType {
   userOwnedPools?: unknown[];
   userProfitLosses?: unknown[];
 }
+
+export type QueryType = {
+  type?: string;
+  lhs?: string;
+  rhs?: string;
+  operator?: string;
+};

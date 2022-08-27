@@ -17,13 +17,19 @@ import {
   ColumnDefinition,
   OptionType,
   QueryResultType,
+  QueryType,
   Result,
 } from "../types/types";
 import {
-  CatalogOptionsData,
+  CatalogList,
+  CatalogOperators,
+  createQueryString,
+  Props,
+  QueryMap,
   querySubgraph,
   UserPoolDefinition,
   UserProfitLossDefinition,
+  Values,
 } from "../utils/utils";
 import { QueryResult } from "./QueryResult";
 import { QuerySearchBar } from "./QuerySearchBar";
@@ -36,18 +42,18 @@ const results: Result<any>[] = [
 export const QueryWindow = () => {
   const [isRunLoading, setRunLoading] = useState(false);
   const [isUpdateLoading, setUpdateLoading] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState<OptionType[]>([]);
   const [resultValues, setResultValues] = useState<QueryResultType | null>(
     null
   );
-  const handleChange = (_selectedOptions: OptionType[]) => {
-    setSelectedOptions(_selectedOptions);
-  };
+  const [query, setQuery] = useState<QueryType>({});
+
   const handleRun = () => {
-    if (!selectedOptions.length) return;
-    const query = selectedOptions.map((options) => options.value).join("");
+    const queryString = createQueryString(query);
+    if (!queryString.length) return;
+    const _query = QueryMap[queryString];
+    if (!_query) return;
     setRunLoading(true);
-    querySubgraph(`{${query}}`)
+    querySubgraph(`${_query}`)
       .then((value) => {
         setResultValues(value.data.data);
         setRunLoading(false);
@@ -62,9 +68,11 @@ export const QueryWindow = () => {
     }, 2000);
   };
 
-  const tabs = resultValues
-    ? selectedOptions.map((option) => <Tab>{option.label}</Tab>)
-    : "";
+  const [resultDefinition, resultQueryValues] = resultValues?.userOwnedPools
+    ? [UserPoolDefinition, resultValues?.userOwnedPools]
+    : resultValues?.userProfitLosses
+    ? [UserProfitLossDefinition, resultValues?.userProfitLosses]
+    : [];
 
   return (
     <Stack
@@ -76,88 +84,62 @@ export const QueryWindow = () => {
       width="100vw"
       spacing={8}
     >
-      <Stack spacing={4} width="100%" direction="row">
+      <Stack spacing={2} width="100%" direction="row">
         <QuerySearchBar
-          onChange={handleChange}
-          options={CatalogOptionsData}
+          placeholder="Catalog"
+          onChange={(change) => setQuery({ ...query, type: change[0].value })}
+          options={CatalogList}
         ></QuerySearchBar>
-        <Button
-          isLoading={isRunLoading}
-          onClick={handleRun}
-          colorScheme="teal"
-          variant="solid"
-        >
-          Run
-        </Button>
-        <Button
-          isLoading={isUpdateLoading}
-          onClick={handleUpdate}
-          colorScheme="teal"
-          variant="solid"
-        >
-          Update
-        </Button>
-      </Stack>
+        <QuerySearchBar
+          placeholder="property"
+          onChange={(change) => setQuery({ ...query, lhs: change[0].value })}
+          options={query.type ? Props[query.type] : []}
+        ></QuerySearchBar>
+        <QuerySearchBar
+          width={300}
+          placeholder="operator"
+          onChange={(change) =>
+            setQuery({ ...query, operator: change[0].value })
+          }
+          options={CatalogOperators}
+        ></QuerySearchBar>
+        <QuerySearchBar
+          placeholder="value"
+          onChange={(change) => setQuery({ ...query, rhs: change[0].value })}
+          options={query.type ? Values[query.type] : []}
+        ></QuerySearchBar>
+        <Box w={200}>
+          <Stack spacing={2} width="100%" direction="row">
+            <Button
+              isLoading={isRunLoading}
+              onClick={handleRun}
+              colorScheme="teal"
+              variant="solid"
+            >
+              Run
+            </Button>
 
-      <Tabs width="100%" variant="soft-rounded" colorScheme="green">
-        <TabList>{tabs}</TabList>
-        {resultValues ? (
-          <TabPanels>
-            <TabPanel>
-              {resultValues.userOwnedPools ? (
-                <Box>
-                  <QueryResult
-                    cols={UserPoolDefinition}
-                    results={
-                      resultValues.userOwnedPools as Record<string, any>[]
-                    }
-                  ></QueryResult>
-                </Box>
-              ) : (
-                "No data available"
-              )}
-            </TabPanel>
-            <TabPanel>
-              {resultValues.userProfitLosses ? (
-                <Box>
-                  <QueryResult
-                    cols={UserProfitLossDefinition}
-                    results={
-                      resultValues.userProfitLosses as Record<string, any>[]
-                    }
-                  ></QueryResult>
-                </Box>
-              ) : (
-                "No data available"
-              )}
-            </TabPanel>
-          </TabPanels>
+            <Button
+              isLoading={isUpdateLoading}
+              onClick={handleUpdate}
+              colorScheme="teal"
+              variant="solid"
+            >
+              Update
+            </Button>
+          </Stack>
+        </Box>
+      </Stack>
+      <Box height="100%" width="100%" overflowY="scroll">
+        {resultDefinition ? (
+          <QueryResult
+            cols={resultDefinition}
+            results={resultQueryValues as Record<string, any>[]}
+          ></QueryResult>
         ) : (
           ""
         )}
-      </Tabs>
-      {/* <Stack spacing={4} direction="column" width="100%">
-        {resultValues.userOwnedPools ? (
-          <Box>
-            <QueryResult
-              cols={UserPoolDefinition}
-              results={resultValues.userOwnedPools as Record<string, any>[]}
-            ></QueryResult>
-          </Box>
-        ) : (
-          ""
-        )}
-        {resultValues.userProfitLosses ? (
-          <Box>
-            <QueryResult
-              cols={UserProfitLossDefinition}
-              results={resultValues.userProfitLosses as Record<string, any>[]}
-            ></QueryResult>
-          </Box>
-        ) : (
-          ""
-        )}
-      </Stack> */}
+      </Box>
     </Stack>
   );
 };
