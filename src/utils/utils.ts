@@ -13,7 +13,10 @@ export async function querySubgraph(queryString: String, url: string) {
   //   console.log(pools);
   return pools;
 }
-
+export async function updateProfile(body: any, url: string) {
+  const pools = await axios.post(url, body);
+  return pools;
+}
 export const UserPoolDefinition: ColumnDefinitions = {
   keyProperty: "id",
   definations: [
@@ -130,7 +133,7 @@ export const Values: Record<string, OptionType[]> = {
 };
 
 export const QueryMap: Record<string, string> = {
-  "userOwnedPools(base=eth)": `{userOwnedPools(where :{poolName_contains:"alETH"}) {
+  "userOwnedPools(base=eth)": `{userOwnedPools(where :{poolName_contains:"WETH"}) {
         id
         address
         user

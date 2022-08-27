@@ -11,6 +11,7 @@ import {
   TabPanels,
   Tabs,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
@@ -29,6 +30,7 @@ import {
   Props,
   QueryMap,
   querySubgraph,
+  updateProfile,
   UserPoolDefinition,
   UserProfitLossDefinition,
   Values,
@@ -39,6 +41,8 @@ const url_primea =
   "https://gateway.thegraph.com/api/1464c9756cf848bb444930c8f1ccdf87/subgraphs/id/3nXfK3RbFrj6mhkGdoKRowEEti2WvmUdxmz73tben6Mb";
 const url_nft =
   "https://api.thegraph.com/subgraphs/name/decentraland/marketplace";
+
+const update_url = "https://idu-onboarding-qa.zeotap.net/insertGraphData/";
 const results: Result<any>[] = [
   { key: 1, value: { id: "12323", user: "12323234232", poolCount: 10 } },
   { key: 2, value: { id: "123sd", user: "sdfd3434343d", poolCount: 20 } },
@@ -51,7 +55,7 @@ export const QueryWindow = () => {
     null
   );
   const [query, setQuery] = useState<QueryType>({});
-
+  const toast = useToast();
   const handleRun = () => {
     const queryString = createQueryString(query);
     if (!queryString.length) return;
@@ -61,7 +65,6 @@ export const QueryWindow = () => {
 
     querySubgraph(`${_query}`, query.type == "accounts" ? url_nft : url_primea)
       .then((value) => {
-        console.log(value);
         setResultValues(value.data.data);
         setRunLoading(false);
       })
@@ -70,9 +73,56 @@ export const QueryWindow = () => {
 
   const handleUpdate = () => {
     setUpdateLoading(true);
-    setTimeout(() => {
-      setUpdateLoading(false);
-    }, 2000);
+    if (query.type === "accounts") {
+      updateProfile(resultValues?.accounts, update_url + "decentraland")
+        .then((value) => {
+          setUpdateLoading(false);
+          toast({
+            title: "Profiles added ",
+            description: "We've added the below profile to your store",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
+        })
+        .catch((err) => {
+          setUpdateLoading(false);
+          toast({
+            title: "Oops ! Something went wrong",
+            description: err.toString(),
+            status: "error",
+            duration: 4500,
+            isClosable: true,
+          });
+        });
+      return;
+    }
+    updateProfile(
+      resultValues?.userOwnedPools
+        ? resultValues?.userOwnedPools
+        : resultValues?.userProfitLosses,
+      update_url + "primea"
+    )
+      .then((value) => {
+        setUpdateLoading(false);
+        toast({
+          title: "Profiles added ",
+          description: "We've added the below profile to your store",
+          status: "success",
+          duration: 9000,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        setUpdateLoading(false);
+        toast({
+          title: "Oops ! Something went wrong",
+          description: err.toString(),
+          status: "error",
+          duration: 4500,
+          isClosable: true,
+        });
+      });
   };
   const useResultValues = (): [ColumnDefinitions, unknown[]] => {
     if (resultValues?.userOwnedPools)
