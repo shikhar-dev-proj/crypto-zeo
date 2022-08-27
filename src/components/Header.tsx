@@ -44,11 +44,11 @@ export const Header = ({
           justifyContent="center"
           cursor="pointer"
           fontSize="1rem"
-          color={activeTab === "datastore" ? "pink" : "white"}
-          onClick={() => setActiveTab("datastore")}
+          color={activeTab === "query" ? "pink" : "white"}
+          onClick={() => setActiveTab("query")}
         >
-          <FiLayers />
-          <Text>DataStore</Text>
+          <FiSearch/>
+          <Text> Populate </Text>
         </HStack>
         <HStack
           p={1}
@@ -56,10 +56,11 @@ export const Header = ({
           justifyContent="center"
           cursor="pointer"
           fontSize="1rem"
-          color={activeTab === "query" ? "pink" : "white"}
-          onClick={() => setActiveTab("query")}
+          color={activeTab === "datastore" ? "pink" : "white"}
+          onClick={() => setActiveTab("datastore")}
         >
-          <Text> Populate </Text>
+          <FiLayers />
+          <Text>DataStore</Text>
         </HStack>
       </Flex>
       <Spacer />

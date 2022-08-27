@@ -27,7 +27,7 @@ import { DataStore } from "./components/DataStore";
 import { QueryWindow } from "./components/QueryWindow";
 
 export const App = () => {
-  const [activeTab, setActiveTab] = useState("datastore");
+  const [activeTab, setActiveTab] = useState("query");
   const [activeDatastore, setActiveDatastore] = useState("primea");
   return (
     <ChakraProvider theme={theme}>
